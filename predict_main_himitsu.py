@@ -65,10 +65,11 @@ def mk_input_data(wiselist, word_vec):
 def mk_know_dic(x, y, vec):
 	know_dic  = {}		
 	for (j, data) in enumerate(x):
-		#0.5以上の確率だった場合は出力に渡す
+		#0.55以上の確率だった場合は出力に渡す
+		i = j + 1
 		if y[0][j] >= 0.55:
 			for k,v in vec.items():
-				if vec[k] == j:
+				if vec[k] == i:
 					know_dic[k] = y[0][j]
 					
 	return know_dic
@@ -85,42 +86,55 @@ if __name__ == "__main__":
 	#ひみつ道具ベクトルの作成
 	word_vec = himitsu_data_gd.mk_vec(himitsu)
 	
-	#ユーザ入力部
-	wise_list = mk_user_know(himitsu)
-	#推定器への入力用データの作成
-	input_data = mk_input_data(wise_list, word_vec)
-	#入力値を昇順にソート
-	input_data.sort()
-	input_data = np.array(input_data)
-	print(input_data)
-	print("input_shape is", input_data.shape)
-
 	#学習結果の読み込み
-	model = model_from_json(open('predict_model_himitsu.json').read())
-	model.load_weights('predict_weights_himitsu.h5')
+	model = model_from_json(open('predict_model_himitsu_3.json').read())
+	model.load_weights('predict_weights_himitsu3.h5')
 	
 	#概要の出力
 	model.summary();
 	model.compile(loss="binary_crossentropy", optimizer=SGD(lr=0.1), metrics=['accuracy'])
 
-	#ユーザデータの推定値出力...入力は被験者の入力作業によって得られたデータ
-	#predintionsは出力であり、それぞれの単語の推定値を確率で出力
-	predictions = model.predict(input_data, 1, 1)
-	print(predictions)
-
-
-	#既知・未知推定情報の取得
-	know_dic = mk_know_dic(himitsu, predictions, word_vec)
-			
-			
-	#結果の出力
-	print("\n\nあなたが知ってそうなひみつ道具は......\n\n")
-	print("{")
-	for k, v in know_dic.items():
-		print("[", k, "推定確率は:", v, "]")
-		
-	print("}")
-		
-		
-
 	
+	while 0 < 1 :
+	
+		#ユーザ入力部
+		wise_list = mk_user_know(himitsu)
+		#推定器への入力用データの作成
+		input_data = mk_input_data(wise_list, word_vec)
+		#入力値を昇順にソート
+		input_data[0].sort()
+		input_data = np.array(input_data)
+		print(input_data)
+	
+		#ユーザデータの推定値出力...入力は被験者の入力作業によって得られたデータ
+		#predintionsは出力であり、それぞれの単語の推定値を確率で出力
+		predictions = model.predict(input_data, 1, 1)
+		print(predictions)
+
+
+		#既知・未知推定情報の取得
+		know_dic = mk_know_dic(himitsu, predictions, word_vec)
+			
+			
+		#結果の出力
+		print("\n\nあなたが知ってそうなひみつ道具は......\n\n")
+		
+
+		for k, v in know_dic.items():
+			print("[", k, "既知確率:", str(round(v*100, 2)), "%" "]")
+		
+		print("\n\n\n")
+		
+		print("システムを終了しますか？")
+		a = input("終了するならyキーを, 続けるならnキーを押してください:")
+		if a == "y":
+			print("\n\n\nシステム作動を終了します...\n\n\n")
+			break
+			
+		elif a == "n":
+			print("\n\n\nシステム作動を継続します...\n\n\n")
+			
+	gc.collect()
+		
+		
+		
